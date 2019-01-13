@@ -1,0 +1,54 @@
+\section*{ПРИЛОЖЕНИЕ А}
+\addcontentsline{toc}{section}{Приложение А}
+
+\addcontentsline{toc}{subsection}{Листинг ~\ref{lst:thumbnails} - образец реализации задачи по генерации скриншотов из видео}
+
+\begin{lstlisting}[caption={Образец реализации задачи по генерации скриншотов из видео}, label=lst:thumbnails]
+
+@task(name='generate_thumbnails')
+def generate_thumbnails(videofile_id,
+    thumbnail_interval=None, force=False):
+  # check for duplicate tasks
+  if not force and is_queued(videofile_id):
+  return {
+    'error': 'duplicate task with \
+      videofile_id=%d' % (videofile_id)
+  }
+
+  if not thumbnail_interval:
+    thumbnail_interval = settings.THUMBNAIL_INTERVAL
+
+  with utils.work_dir(remove=True):
+    try:
+      start_time = time.time()
+      result = _generate_thumbnails(
+        videofile_id,
+        thumbnail_interval
+      )
+      end_time = time.time()
+      print 'Finished. time = {0} sec.' \
+        .format(round(end_time - start_time, 1))
+      return result
+    except StreamException:
+      pass
+    except Exception, e:
+      print 'EXCEPTION ', videofile_id, e
+      generate_thumbnails.retry(
+        videofile_id,
+        thumbnail_interval=thumbnail_interval,
+        countdown=60
+      )
+
+def is_queued(videofile_id):
+  kwargs_start = "'videofile_id': "+str(videofile_id)
+  tasks = TaskState.objects.filter(
+    name=TASK_NAME,
+    state__in=['STARTED', 'SUCCESS'],
+    tstamp__gte=datetime.now()-timedelta(hours=1)
+  ) \
+    .filter(
+      Q(kwargs__contains=kwargs_start+',') | \
+        Q(kwargs__contains=kwargs_start+'}')
+    )
+  return tasks.count() > 0
+\end{lstlisting}
