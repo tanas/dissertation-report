@@ -50,6 +50,15 @@
     }
 \makeatother
 
+% Зачем: Не отображать номер секции в содержании
+\makeatletter
+\let\latexl@section\l@section
+\def\l@section#1#2{\begingroup\let\numberline\@gobble\latexl@section{#1}{#2}\endgroup}
+\def\@seccntformat#1{\ifcsname #1format\endcsname\else\csname the#1\endcsname\quad\fi}
+\def\sectionformat{}
+\makeatother
+
+
 % Зачем: Задание подписей, разделителя и нумерации частей рисунков
 % Почему: Пункт 2.5.5 Требований по оформлению пояснительной записки.
 \DeclareCaptionLabelFormat{stbfigure}{Рисунок #2}
