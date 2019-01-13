@@ -88,7 +88,8 @@ django-guardian успешно заполняет этот пробел. При�
 class ChannelVideoPermissionContext(dict):
   def __init__(self, user_permission_context):
     self._pc = user_permission_context
-    super(ChannelVideoPermissionContext, self).__init__(**{
+    super(ChannelVideoPermissionContext, self)
+      .__init__(**{
       'view': self._has(
         'view_video',
         'play_video',
